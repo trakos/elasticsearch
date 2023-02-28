@@ -48,7 +48,7 @@ public final class HdfsRepository extends BlobStoreRepository {
 
     private static final String CONF_SECURITY_PRINCIPAL = "security.principal";
 
-    private static final List<String> allowedSchemes = List.of("hdfs", "webhdfs", "swebhdfs");
+    private static final List<String> allowedSchemes = List.of("hdfs", "webhdfs", "swebhdfs", "knoxswebhdfs");
 
     private final Environment environment;
     private final ByteSizeValue chunkSize;
@@ -84,7 +84,7 @@ public final class HdfsRepository extends BlobStoreRepository {
                 )
             );
         }
-        if (Strings.hasLength(uri.getPath()) && uri.getPath().equals("/") == false) {
+        if (uri.getScheme().equals("knoxswebhdfs") == false && Strings.hasLength(uri.getPath()) && uri.getPath().equals("/") == false) {
             throw new IllegalArgumentException(
                 String.format(
                     Locale.ROOT,
@@ -117,6 +117,9 @@ public final class HdfsRepository extends BlobStoreRepository {
         hadoopConfiguration.setBoolean("fs.hdfs.impl.disable.cache", true);
         hadoopConfiguration.setBoolean("fs.webhdfs.impl.disable.cache", true);
         hadoopConfiguration.setBoolean("fs.swebhdfs.impl.disable.cache", true);
+        hadoopConfiguration.setBoolean("fs.knoxswebhdfs.impl.disable.cache", true);
+        // Add semi-custom scheme for SWebHdfs behind Apache Knox.
+        hadoopConfiguration.set("fs.AbstractFileSystem.knoxswebhdfs.impl", "org.apache.hadoop.fs.KnoxSWebHdfs");
 
         // Create a hadoop user
         UserGroupInformation ugi = login(hadoopConfiguration, repositorySettings);
